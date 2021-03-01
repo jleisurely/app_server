@@ -18,10 +18,9 @@ class MyAppChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
-
     final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
     final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
-        "heroes_user", "password", "localhost", 5432, "heroes");
+        "postgres", "12345678", "127.0.0.1", 5432, "heroes");
 
     context = ManagedContext(dataModel, persistentStore);
   }
