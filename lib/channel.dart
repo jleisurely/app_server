@@ -1,20 +1,29 @@
+import 'controller/heroes_controller.dart';
 import 'my_app.dart';
-import 'custom_sql.dart';
-
+import 'heroes.dart';
 /// This type initializes an application.
 ///
 /// Override methods in this class to set up routes and initialize services like
 /// database connections. See http://aqueduct.io/docs/http/channel/.
 class MyAppChannel extends ApplicationChannel {
+  ManagedContext context;
   /// Initialize services in this method.
   ///
   /// Implement this method to initialize services, read values from [options]
   /// and any other initialization required before constructing [entryPoint].
   ///
   /// This method is invoked prior to [entryPoint] being accessed.
+
+
   @override
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
+
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
+        "heroes_user", "password", "localhost", 5432, "heroes");
+
+    context = ManagedContext(dataModel, persistentStore);
   }
 
   /// Construct the request channel.
@@ -26,7 +35,9 @@ class MyAppChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = Router();
-    final sql = main();
+    router
+        .route('/heroes/[:id]')
+        .link(() => HeroesController(context));
     // Prefer to use `link` instead of `linkFunction`.
     // See: https://aqueduct.io/docs/http/request_controller/
     router
