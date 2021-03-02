@@ -1,6 +1,8 @@
 import 'controller/heroes_controller.dart';
 import 'my_app.dart';
 import 'heroes.dart';
+import 'AppConfig.dart';
+import 'model/hero.dart';
 /// This type initializes an application.
 ///
 /// Override methods in this class to set up routes and initialize services like
@@ -18,11 +20,22 @@ class MyAppChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
-    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
-    final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
-        "postgres", "12345678", "127.0.0.1", 5432, "heroes");
+    final AppConfig _config=AppConfig(options.configurationFilePath);
+    options.port=_config.port;
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();//描述应用程序的数据模型
+    final psc = PostgreSQLPersistentStore.fromConnectionInfo(
+        _config.database.username,
+        _config.database.password,
+        _config.database.host,
+        _config.database.port,
+        _config.database.databaseName);//管理与单个数据库的连接
+    context=ManagedContext(dataModel, psc);
 
-    context = ManagedContext(dataModel, persistentStore);
+    // final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    // final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
+    //     "wangyu", "12345678", "127.0.0.1", 5432, "aqueduct");
+    //
+    // context = ManagedContext(dataModel, persistentStore);
   }
 
   /// Construct the request channel.

@@ -1,12 +1,12 @@
-#database:
-#  host: 127.0.0.1
-#  port: 3306
-#  databaseName: project
-#port: 8000
+
+
+port: 8080
 
 database:
-  host: 127.0.0.1
+  host: "127.0.0.1"
   port: 5432
-  username: postgres
-  password: 12345678
-  databaseName: heroes
+  databaseName: "my_data"
+  username: "wangyu"
+  password: "12345678"
+
+
