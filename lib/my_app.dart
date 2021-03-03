@@ -7,5 +7,4 @@ export 'dart:async';
 export 'dart:io';
 
 export 'package:aqueduct/aqueduct.dart';
-export 'custom_sql.dart';
 export 'channel.dart';

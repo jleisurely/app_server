@@ -43,6 +43,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.5"
+  buffer:
+    dependency: transitive
+    description:
+      name: buffer
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.7"
   charcode:
     dependency: transitive
     description:
@@ -78,13 +85,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.5"
-  file:
-    dependency: transitive
-    description:
-      name: file
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "5.2.1"
   front_end:
     dependency: transitive
     description:
@@ -120,13 +120,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.1.4"
-  intl:
-    dependency: transitive
-    description:
-      name: intl
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "0.16.1"
   io:
     dependency: transitive
     description:
@@ -203,14 +196,14 @@ packages:
       name: node_interop
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.2.1"
+    version: "1.1.1"
   node_io:
     dependency: transitive
     description:
       name: node_io
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.2.0"
+    version: "1.1.1"
   node_preamble:
     dependency: transitive
     description:
@@ -268,12 +261,12 @@ packages:
     source: hosted
     version: "1.4.0"
   postgres:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: postgres
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.0.2"
+    version: "2.1.1"
   pub_cache:
     dependency: transitive
     description:
@@ -344,13 +337,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.7.0"
-  sqljocky5:
-    dependency: "direct main"
-    description:
-      name: sqljocky5
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.2.1"
   stack_trace:
     dependency: transitive
     description:
@@ -372,13 +358,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.5"
-  synchronized:
-    dependency: transitive
-    description:
-      name: synchronized
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.5.3+2"
   term_glyph:
     dependency: transitive
     description:
@@ -407,13 +386,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.2.5"
-  typed_buffer:
-    dependency: transitive
-    description:
-      name: typed_buffer
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "2.2.1"
   typed_data:
     dependency: transitive
     description:
@@ -441,7 +413,7 @@ packages:
       name: web_socket_channel
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.2.0"
+    version: "1.1.0"
   yaml:
     dependency: transitive
     description:
@@ -450,4 +422,4 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.10.0 <3.0.0"
+  dart: ">=2.7.0 <3.0.0"

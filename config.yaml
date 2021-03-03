@@ -5,8 +5,8 @@ port: 8080
 database:
   host: "127.0.0.1"
   port: 5432
-  databaseName: "my_data"
+  databaseName: "zshdb"
   username: "wangyu"
-  password: "12345678"
+  password: "123456"
 
 

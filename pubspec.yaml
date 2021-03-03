@@ -8,7 +8,9 @@ environment:
 
 dependencies:
   aqueduct: 3.3.0+1
-  sqljocky5: ^2.2.1
 dev_dependencies:
   test: ^1.0.0
   aqueduct_test: ^1.0.0
+
+dependency_overrides:
+  postgres: 2.1.1
