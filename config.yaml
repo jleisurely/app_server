@@ -1,12 +1,12 @@
 
 
-port: 8080
+port: 80
 
 database:
   host: "127.0.0.1"
   port: 5432
-  databaseName: "zshdb"
-  username: "wangyu"
+  databaseName: "testdb"
+  username: "postgres"
   password: "123456"
 
 
