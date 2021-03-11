@@ -1,6 +1,7 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:my_app/heroes.dart';
 import 'package:my_app/model/hero.dart';
+import 'package:my_app/model/user.dart';
 
 class HeroesController extends ResourceController {
   HeroesController(this.context);
@@ -15,14 +16,22 @@ class HeroesController extends ResourceController {
     //   {'id': 15, 'name': 'Black Widow'},
     // ];
 
-  @Operation.post()
-  Future<Response> createHero(@Bind.body() Hero inputHero) async {
-    final query = Query<Hero>(context)
-      ..values = inputHero;
-
-    final insertedHero = await query.insert();
-
-    return Response.ok(insertedHero);
+  // @Operation.post()
+  // Future<Response> createHero(@Bind.body() User inputHero) async {
+  //   final query = Query<User>(context)
+  //     ..values = inputHero;
+  //   inputHero.create_time = DateTime.now().toString();
+  //   // final insertedHero = await query.insert();
+  //   final result = await context.insertObject<User>(inputHero);
+  //   return Response.ok(result);
+  // }
+  @Operation.post()//添加一篇文章
+  FutureOr<Response> insertArticle(
+      @Bind.body(ignore: ["createData"]) User article) async {
+    article.create_time = DateTime.now().toString();
+//插入一条数据
+    final result = await context.insertObject<User>(article);
+    return Response.ok(result);;
   }
 
   @Operation.delete('id')
@@ -47,17 +56,25 @@ class HeroesController extends ResourceController {
     return Response.ok(hero);
   }
 
-  @Operation.get()
-  Future<Response> getAllHeroes() async {
-    final heroQuery = Query<Hero>(context);
-    final heroes = await heroQuery.fetch();
+  // @Operation.get()
+  // Future<Response> getAllHeroes() async {
+  //   final heroQuery = Query<Hero>(context);
+  //   final heroes = await heroQuery.fetch();
+  //
+  //   return Response.ok(heroes);
+  // }
 
-    return Response.ok(heroes);
+  @Operation.get()
+  Future<Response> getAllUser() async {
+    final heroQuery = Query<User>(context);
+    final users = await heroQuery.fetch();
+
+    return Response.ok(users);
   }
 
   @Operation.get('id')
   Future<Response> getHeroByID(@Bind.path('id') int id) async {
-    final heroQuery = Query<Hero>(context)..where((h) => h.id).equalTo(id);
+    final heroQuery = Query<User>(context)..where((h) => h.id).equalTo(id);
     final hero = await heroQuery.fetchOne();
     if (hero == null) {
       return Response.notFound();
