@@ -3,6 +3,8 @@ import 'my_app.dart';
 import 'heroes.dart';
 import 'AppConfig.dart';
 import 'model/hero.dart';
+import 'model/user.dart';
+import 'controller/ValidateController.dart';
 /// This type initializes an application.
 ///
 /// Override methods in this class to set up routes and initialize services like
@@ -46,7 +48,13 @@ class MyAppChannel extends ApplicationChannel {
   /// This method is invoked after [prepare].
   @override
   Controller get entryPoint {
-    final router = Router();
+    final router = Router(notFoundHandler: (request) async {
+      Response response=Response.notFound();//404的状态码
+      response.contentType=ContentType.json;//内容类型
+      response.body={'code': -1, 'msg': '404'};//内容
+      await request.respond(response);//把内容相应出去
+      logger.info("${request.toDebugString()}");//打印日志
+    });
     router
         .route('/heroes/[:id]')
         .link(() => HeroesController(context));
@@ -57,6 +65,32 @@ class MyAppChannel extends ApplicationChannel {
       .linkFunction((request) async {
         return Response.ok({"key": "value"});
       });
+
+    router
+        .route('/user/[:id]')
+        .link(() => ValidateController())
+
+        .link(() => HeroesController(context));
+
+    // router
+    //     .route("/files/*")
+    //     .link(()=>FileController('static/'));
+    router
+        .route("/files/*")
+        .link(() => FileController('static/',
+//new
+        onFileNotFound: (FileController controller, Request req) async {
+          final file = File('static/3.jpeg');
+          final byteStream = file.openRead();
+          return Response.ok(
+            byteStream,
+          )
+            ..encodeBody = false
+            ..contentType = ContentType("image", "jpeg");
+        })
+      ..addCachePolicy(
+          const CachePolicy(expirationFromNow: Duration(days: 10)),
+              (path) => path.endsWith('.jpg'))); //用于判断哪些图片或资源格式需要缓存
 
     return router;
   }
