@@ -13,6 +13,15 @@ class _User {
   String mobile;
 
   @Column(unique: false)
+  String password;
+
+  @Column(unique: false)
+  String salt;
+
+  @Column(unique: false)
+  String hashedPassword;
+
+  @Column(unique: false)
   int role_id;
 
   @Column(unique: false)

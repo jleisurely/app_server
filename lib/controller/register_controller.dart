@@ -3,10 +3,40 @@ import 'package:my_app/heroes.dart';
 import 'package:my_app/model/hero.dart';
 import 'package:my_app/model/user.dart';
 
-class HeroesController extends ResourceController {
-  HeroesController(this.context);
+class RegisterController extends ResourceController {
+  RegisterController(this.context, this.authServer);
 
   final ManagedContext context;
+  final AuthServer authServer;
+  UserController() {
+    acceptedContentTypes = [ContentType.JSON, ContentType.html];
+  }
+
+  @Operation.post()
+  Future<Response> createUser(@Bind.body() User user) async {
+    if (user.name == null || user.password == null) {
+      return Response.badRequest(
+          body: {"error": "username and password required."});
+    }
+
+    final salt = AuthUtility.generateRandomSalt();
+    final hashedPassword = authServer.hashPassword(user.password, salt);
+
+    final query = Query<User>(context)
+      ..values = user
+      ..values.hashedPassword = hashedPassword
+      ..values.salt = salt
+      ..values.name = user.name;
+
+    final u = await query.insert();
+    final token = await authServer.authenticate(
+        u.name,
+        query.values.password,
+        request.authorization.credentials.username,
+        request.authorization.credentials.password);
+
+    return AuthController.tokenResponse(token);
+  }
 
 
 
@@ -26,7 +56,7 @@ class HeroesController extends ResourceController {
     final hero = await heroQuery.delete();
     if (hero == null) {
       return Response.notFound();
-    } 
+    }
     return Response.ok(hero);
   }
 
@@ -38,7 +68,7 @@ class HeroesController extends ResourceController {
     final hero = await heroQuery.updateOne();
     if (hero == null) {
       return Response.notFound();
-    } 
+    }
     return Response.ok(hero);
   }
 
@@ -59,12 +89,12 @@ class HeroesController extends ResourceController {
   }
 
   @Operation.get('id')
-  Future<Response> getHeroByID(@Bind.path('id') int id) async {
-    final heroQuery = Query<User>(context)..where((h) => h.id).equalTo(id);
+  Future<Response> getHeroByID(@Bind.path('id') String mobile) async {
+    final heroQuery = Query<User>(context)..where((h) => h.mobile).equalTo(mobile);
     final hero = await heroQuery.fetchOne();
     if (hero == null) {
-      return Response.notFound();
-    } 
+      return Response.ok("可以注册");
+    }
     return Response.ok(hero);
   }
 }

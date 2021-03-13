@@ -1,4 +1,5 @@
 import 'controller/heroes_controller.dart';
+import 'controller/register_controller.dart';
 import 'my_app.dart';
 import 'heroes.dart';
 import 'AppConfig.dart';
@@ -71,6 +72,11 @@ class MyAppChannel extends ApplicationChannel {
         .link(() => ValidateController())
 
         .link(() => HeroesController(context));
+    router
+        .route('/phone/[:id]')
+        .link(() => ValidateController())
+
+        .link(() => RegisterController(context));
 
     // router
     //     .route("/files/*")
