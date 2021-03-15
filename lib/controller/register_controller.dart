@@ -9,7 +9,8 @@ class RegisterController extends ResourceController {
   final ManagedContext context;
   final AuthServer authServer;
   UserController() {
-    acceptedContentTypes = [ContentType.JSON, ContentType.html];
+    acceptedContentTypes = [ContentType.json, ContentType.html];
+    responseContentType = ContentType.json;
   }
 
   @Operation.post()
