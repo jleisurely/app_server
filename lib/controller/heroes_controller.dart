@@ -14,7 +14,7 @@ class HeroesController extends ResourceController {
   @Operation.post()//添加一篇文章
   FutureOr<Response> insertArticle(
       @Bind.body(ignore: ["createData"]) User article) async {
-    article.create_time = DateTime.now().toString();
+    // article.create_time = DateTime.now().toString();
 //插入一条数据
     final result = await context.insertObject<User>(article);
     return Response.ok(result);;

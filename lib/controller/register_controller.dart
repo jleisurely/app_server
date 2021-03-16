@@ -15,41 +15,23 @@ class RegisterController extends ResourceController {
 
   @Operation.post()
   Future<Response> createUser(@Bind.body() User user) async {
-    if (user.name == null || user.password == null) {
+    // Check for required parameters before we spend time hashing
+    if (user.username == null || user.password == null) {
       return Response.badRequest(
           body: {"error": "username and password required."});
     }
 
-    final salt = AuthUtility.generateRandomSalt();
-    final hashedPassword = authServer.hashPassword(user.password, salt);
+    user
+      ..salt = AuthUtility.generateRandomSalt()
+      ..hashedPassword = authServer.hashPassword(user.password, user.salt);
 
-    final query = Query<User>(context)
-      ..values = user
-      ..values.hashedPassword = hashedPassword
-      ..values.salt = salt
-      ..values.name = user.name;
-
-    final u = await query.insert();
-    final token = await authServer.authenticate(
-        u.name,
-        query.values.password,
-        request.authorization.credentials.username,
-        request.authorization.credentials.password);
-
-    return AuthController.tokenResponse(token);
+    return Response.ok(await Query(context, values: user).insert());
   }
 
 
 
 
-  @Operation.post()//添加一篇文章
-  FutureOr<Response> insertArticle(
-      @Bind.body(ignore: ["createData"]) User article) async {
-    article.create_time = DateTime.now().toString();
-//插入一条数据
-    final result = await context.insertObject<User>(article);
-    return Response.ok(result);;
-  }
+
 
   @Operation.delete('id')
   Future<Response> deleteHeroByID(@Bind.path('id') int id) async {
@@ -89,15 +71,15 @@ class RegisterController extends ResourceController {
     return Response.ok(users);
   }
 
-  @Operation.get('id')
-  Future<Response> getHeroByID(@Bind.path('id') String mobile) async {
-    final heroQuery = Query<User>(context)..where((h) => h.mobile).equalTo(mobile);
-    final hero = await heroQuery.fetchOne();
-    if (hero == null) {
-      return Response.ok("可以注册");
-    }
-    return Response.ok(hero);
-  }
+  // @Operation.get('id')
+  // Future<Response> getHeroByID(@Bind.path('id') String mobile) async {
+  //   final heroQuery = Query<User>(context)..where((h) => h.mobile).equalTo(mobile);
+  //   final hero = await heroQuery.fetchOne();
+  //   if (hero == null) {
+  //     return Response.ok("可以注册");
+  //   }
+  //   return Response.ok(hero);
+  // }
 }
 
 

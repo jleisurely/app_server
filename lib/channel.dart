@@ -1,9 +1,11 @@
+import 'package:aqueduct/managed_auth.dart';
+
 import 'controller/heroes_controller.dart';
 import 'controller/register_controller.dart';
 import 'my_app.dart';
 import 'heroes.dart';
 import 'AppConfig.dart';
-import 'model/hero.dart';
+
 import 'model/user.dart';
 import 'controller/ValidateController.dart';
 /// This type initializes an application.
@@ -18,7 +20,7 @@ class MyAppChannel extends ApplicationChannel {
   /// and any other initialization required before constructing [entryPoint].
   ///
   /// This method is invoked prior to [entryPoint] being accessed.
-
+  AuthServer authServer;
 
   @override
   Future prepare() async {
@@ -33,7 +35,8 @@ class MyAppChannel extends ApplicationChannel {
         _config.database.port,
         _config.database.databaseName);//管理与单个数据库的连接
     context=ManagedContext(dataModel, psc);
-
+    final authStorage = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(authStorage);
     // final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
     // final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
     //     "wangyu", "12345678", "127.0.0.1", 5432, "aqueduct");
@@ -56,31 +59,19 @@ class MyAppChannel extends ApplicationChannel {
       await request.respond(response);//把内容相应出去
       logger.info("${request.toDebugString()}");//打印日志
     });
+
+    router
+        .route('/auth/token')
+        .link(() => AuthController(authServer));
     router
         .route('/heroes/[:id]')
+        .link(() => Authorizer.bearer(authServer))
         .link(() => HeroesController(context));
-    // Prefer to use `link` instead of `linkFunction`.
-    // See: https://aqueduct.io/docs/http/request_controller/
-    router
-      .route("/example")
-      .linkFunction((request) async {
-        return Response.ok({"key": "value"});
-      });
 
     router
-        .route('/user/[:id]')
-        .link(() => ValidateController())
+        .route('/register')
+        .link(() => RegisterController(context, authServer));
 
-        .link(() => HeroesController(context));
-    router
-        .route('/phone/[:id]')
-        .link(() => ValidateController())
-
-        .link(() => RegisterController(context));
-
-    // router
-    //     .route("/files/*")
-    //     .link(()=>FileController('static/'));
     router
         .route("/files/*")
         .link(() => FileController('static/',
