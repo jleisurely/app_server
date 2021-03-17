@@ -1,85 +1,55 @@
-import 'package:aqueduct/aqueduct.dart';
+import '../model/base_result.dart';
+import '../model/user.dart';
 import 'package:my_app/heroes.dart';
-import 'package:my_app/model/hero.dart';
-import 'package:my_app/model/user.dart';
 
+/**
+ * 注册接口
+ */
 class RegisterController extends ResourceController {
-  RegisterController(this.context, this.authServer);
-
-  final ManagedContext context;
   final AuthServer authServer;
-  UserController() {
-    acceptedContentTypes = [ContentType.json, ContentType.html];
-    responseContentType = ContentType.json;
-  }
+  final ManagedContext context;
+
+  RegisterController(this.authServer, this.context);
 
   @Operation.post()
   Future<Response> createUser(@Bind.body() User user) async {
-    // Check for required parameters before we spend time hashing
-    if (user.username == null || user.password == null) {
-      return Response.badRequest(
-          body: {"error": "username and password required."});
+    //检查条件
+    if (user.username.isNotEmpty != true || user.password.isNotEmpty != true) {
+      return Response.ok(
+        BaseResult(
+          code: 1,
+          msg: '注册失败：username and password required',
+        ),
+      );
     }
 
+    //判断用户是否存在
+    Query<User> query = Query<User>(context)
+      ..where((u) {
+        return u.username;
+      }).equalTo(user.username);
+    if (await query.fetchOne() != null) {
+      return Response.ok(
+        BaseResult(
+          code: 1,
+          msg: '注册失败：user has already exist',
+        ),
+      );
+    }
+
+    //插入数据库
     user
       ..salt = AuthUtility.generateRandomSalt()
       ..hashedPassword = authServer.hashPassword(user.password, user.salt);
 
-    return Response.ok(await Query(context, values: user).insert());
+    var result = await Query(context, values: user).insert();
+
+    return Response.ok(
+      BaseResult(
+        code: 1,
+        data: result,
+        msg: "注册成功",
+      ),
+    );
   }
-
-
-
-
-
-
-  @Operation.delete('id')
-  Future<Response> deleteHeroByID(@Bind.path('id') int id) async {
-    final heroQuery = Query<Hero>(context)..where((h) => h.id).equalTo(id);
-    final hero = await heroQuery.delete();
-    if (hero == null) {
-      return Response.notFound();
-    }
-    return Response.ok(hero);
-  }
-
-  @Operation.put('id')
-  Future<Response> updateHeroById(@Bind.path('id') int id ,@Bind.body() Hero inputHero) async {
-    final heroQuery = Query<Hero>(context)
-      ..where((h) => h.id).equalTo(id)
-      ..values = inputHero;
-    final hero = await heroQuery.updateOne();
-    if (hero == null) {
-      return Response.notFound();
-    }
-    return Response.ok(hero);
-  }
-
-  // @Operation.get()
-  // Future<Response> getAllHeroes() async {
-  //   final heroQuery = Query<Hero>(context);
-  //   final heroes = await heroQuery.fetch();
-  //
-  //   return Response.ok(heroes);
-  // }
-
-  @Operation.get()
-  Future<Response> getAllUser() async {
-    final heroQuery = Query<User>(context);
-    final users = await heroQuery.fetch();
-
-    return Response.ok(users);
-  }
-
-  // @Operation.get('id')
-  // Future<Response> getHeroByID(@Bind.path('id') String mobile) async {
-  //   final heroQuery = Query<User>(context)..where((h) => h.mobile).equalTo(mobile);
-  //   final hero = await heroQuery.fetchOne();
-  //   if (hero == null) {
-  //     return Response.ok("可以注册");
-  //   }
-  //   return Response.ok(hero);
-  // }
 }
-
-

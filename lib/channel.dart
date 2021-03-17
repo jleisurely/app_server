@@ -1,13 +1,31 @@
 import 'package:aqueduct/managed_auth.dart';
 
+import 'controller/goods_list_controller.dart';
 import 'controller/heroes_controller.dart';
-import 'controller/register_controller.dart';
 import 'my_app.dart';
 import 'heroes.dart';
 import 'AppConfig.dart';
 
 import 'model/user.dart';
+import 'model/goods.dart';
 import 'controller/ValidateController.dart';
+
+
+
+import 'dart:convert' as convert;
+
+import 'config/custom_config.dart';
+import 'package:aqueduct/managed_auth.dart';
+import 'constants.dart';
+import 'controller/comment_controller.dart';
+import 'controller/friend_controller.dart';
+import 'controller/login_controller.dart';
+import 'controller/message_controller.dart';
+import 'controller/register_controller.dart';
+import 'model/message.dart';
+import 'model/user.dart';
+import 'controller/chat_list_controller.dart';
+import 'heroes.dart';
 /// This type initializes an application.
 ///
 /// Override methods in this class to set up routes and initialize services like
@@ -21,7 +39,7 @@ class MyAppChannel extends ApplicationChannel {
   ///
   /// This method is invoked prior to [entryPoint] being accessed.
   AuthServer authServer;
-
+  Map<int, WebSocket> connections = Map();
   @override
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
@@ -37,11 +55,19 @@ class MyAppChannel extends ApplicationChannel {
     context=ManagedContext(dataModel, psc);
     final authStorage = ManagedAuthDelegate<User>(context);
     authServer = AuthServer(authStorage);
-    // final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
-    // final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
-    //     "wangyu", "12345678", "127.0.0.1", 5432, "aqueduct");
-    //
-    // context = ManagedContext(dataModel, persistentStore);
+
+
+    messageHub.listen((event) {
+      if (event is Map && event['event'] == 'websocket_broadcast') {
+        dynamic e = event['message'];
+        int fromUserId = event['fromUserId'] as int;
+
+        connections.values.forEach((socket) {
+//          socket.add(event['message']);
+          handleEvent(e, fromUserId: fromUserId);
+        });
+      }
+    });
   }
 
   /// Construct the request channel.
@@ -67,10 +93,13 @@ class MyAppChannel extends ApplicationChannel {
         .route('/heroes/[:id]')
         .link(() => Authorizer.bearer(authServer))
         .link(() => HeroesController(context));
-
     router
-        .route('/register')
-        .link(() => RegisterController(context, authServer));
+        .route('/goods/[:id]')
+        .link(() => Authorizer.bearer(authServer))
+        .link(() => GoodsController(context));
+    // router
+    //     .route('/register')
+    //     .link(() => RegisterController(authServer,context));
 
     router
         .route("/files/*")
@@ -89,6 +118,122 @@ class MyAppChannel extends ApplicationChannel {
           const CachePolicy(expirationFromNow: Duration(days: 10)),
               (path) => path.endsWith('.jpg'))); //用于判断哪些图片或资源格式需要缓存
 
+
+
+
+
+    router
+        .route("/register")
+        .link(() => RegisterController(authServer, context));
+
+    router.route("/login").link(() => LoginController(context));
+
+    router
+        .route("/comment")
+        .link(() => Authorizer.bearer(authServer))
+        .link(() => CommentController());
+
+    router
+        .route("/friend")
+        .link(() => Authorizer.bearer(authServer))
+        .link(() => FriendController(context));
+
+    router
+        .route("/chat_list")
+        .link(() => Authorizer.bearer(authServer))
+        .link(() => ChatListController(context));
+
+    //跟服务器建立连接
+    router
+        .route("/connect")
+        .link(() => Authorizer.bearer(authServer))
+        .linkFunction((request) async {
+      //连接的用户id
+      int userId = request.authorization.ownerID;
+      var socket = await WebSocketTransformer.upgrade(request.raw);
+
+      print("userId：$userId的用户跟服务器建立连接");
+      socket.listen((event) {
+        print("server listen:${event}");
+        handleEvent(event, fromUserId: userId);
+
+        messageHub.add(
+          {
+            "event": "websocket_broadcast",
+            "message": event,
+            'fromUserId': userId,
+          },
+        );
+      }, onDone: () {
+        //socket连接断了的话，移除连接
+        connections.remove(userId);
+      });
+      //保存连接
+      connections[userId] = socket;
+
+      print("当前连接用户有${connections.length}个");
+      connections.keys.forEach((userId) {
+        print("userId:$userId");
+      });
+      return null;
+    });
+
+    //查询消息记录
+    router
+        .route("/message/[:id]")
+        .link(() => Authorizer.bearer(authServer))
+        .link(() => MessageController(context));
     return router;
+  }
+  //处理事件
+  handleEvent(dynamic event, {int fromUserId}) async {
+    if (event is String) {
+      try {
+        var map = convert.jsonDecode(event.toString());
+        //接收者的id
+        int toUserId = map['toUserId'] as int;
+        //消息内容
+        String msg_content = map['msg_content'] as String;
+        //消息类型
+        int msg_type = map['msg_type'] as int;
+        Message message = await saveMessage(
+            fromUserId, toUserId, msg_content, msg_type, false);
+
+        connections.keys.forEach((key) {
+          if (key == toUserId || key == fromUserId) {
+            bool selfUser = key == fromUserId;
+            message.selfUser = selfUser;
+            connections[key].add(convert.jsonEncode(message));
+            print(
+                "服务器进行中转消息： fromUserId:$fromUserId,toUserId:$toUserId,msg_content: $msg_content");
+          }
+        });
+      } catch (e) {
+        print("e:$e");
+      }
+    }
+  }
+
+  /**
+   * 保存一条信息记录
+   */
+  Future<Message> saveMessage(int fromUserId, int toUserId, String msg_content,
+      int msg_type, bool selfUser) async {
+    Message message = Message();
+    message
+      ..selfUser = selfUser
+      ..fromUserId = fromUserId
+      ..toUserId = toUserId
+      ..content = msg_content
+      ..type = msg_type
+      ..sendTime = DateTime.now();
+
+    Query<Message> query = Query<Message>(context)..values = message;
+    if (await query.insert() != null) {
+      print("保存聊天信息成功：${message.asMap()}");
+      return message;
+    } else {
+      return null;
+    }
   }
 }
