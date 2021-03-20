@@ -7,7 +7,7 @@ import 'heroes.dart';
 import 'AppConfig.dart';
 
 import 'model/user.dart';
-import 'model/goods.dart';
+import 'model/goods_detail.dart';
 import 'controller/ValidateController.dart';
 
 
@@ -93,10 +93,7 @@ class MyAppChannel extends ApplicationChannel {
         .route('/heroes/[:id]')
         .link(() => Authorizer.bearer(authServer))
         .link(() => HeroesController(context));
-    router
-        .route('/goods/[:id]')
-        .link(() => Authorizer.bearer(authServer))
-        .link(() => GoodsController(context));
+    // routera
     // router
     //     .route('/register')
     //     .link(() => RegisterController(authServer,context));
@@ -183,6 +180,11 @@ class MyAppChannel extends ApplicationChannel {
         .route("/message/[:id]")
         .link(() => Authorizer.bearer(authServer))
         .link(() => MessageController(context));
+
+    //创建goods
+    router
+        .route("/goods")
+        .link(() => GoodsController(context));
     return router;
   }
   //处理事件
