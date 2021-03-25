@@ -22,10 +22,21 @@ import 'controller/friend_controller.dart';
 import 'controller/login_controller.dart';
 import 'controller/message_controller.dart';
 import 'controller/register_controller.dart';
-import 'model/message.dart';
-import 'model/user.dart';
 import 'controller/chat_list_controller.dart';
-import 'heroes.dart';
+import 'model/order_list.dart';
+
+
+import 'model/address.dart';
+import 'model/message.dart';
+import 'model/article_list.dart';
+
+import 'model/user.dart';
+import 'model/base_result.dart';
+import 'model/article_list.dart';
+import 'model/detail.dart';
+import 'model/cart.dart';
+import 'model/classify.dart';
+import 'model/comment.dart';
 /// This type initializes an application.
 ///
 /// Override methods in this class to set up routes and initialize services like

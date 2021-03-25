@@ -53,7 +53,8 @@ class GoodsController extends ResourceController {
 
   @Operation.get()
   Future<Response> getAllUser() async {
-    final heroQuery = Query<GoodsDetail>(context);
+    final heroQuery = Query<GoodsDetail>(context)
+      ..returningProperties((goods) => [goods.id, goods.goodsName,goods.salePrice,goods.focusImg]);
     final users = await heroQuery.fetch();
 
     return Response.ok(users);
